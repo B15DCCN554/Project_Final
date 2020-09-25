@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration strict="true">
+
+    <appenders>
+        <appender type="Console" name="STDOUT">
+            <layout type="PatternLayout" pattern="%d{yyyy/MM/dd HH:mm:ss.SSS} [%5p] %t (%F) - %m%n"/>
+        </appender>
+        <appender type="File" name="File" fileName="D:\logs\consumer.log.log">
+            <layout type="PatternLayout">
+                <pattern>%d %20M:%-10L - Token [%X{token}] - %m%n</pattern>
+            </layout>
+        </appender>
+    </appenders>
+
+    <loggers>
+        <logger name="org.apache.jsp" level="debug">
+            <appender-ref ref="File"/>
+        </logger>
+        <root level="debug">
+            <appender-ref ref="File"/>
+        </root>
+    </loggers>
+</configuration>
