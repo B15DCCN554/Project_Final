@@ -30,34 +30,32 @@ public class QrTerminalController {
     @Path("get_qr_terminal")
     @Produces(MediaType.APPLICATION_JSON)
     public QrTerminals getQrTerminal() {
-        if(CommonPool.rateLimiter.checkAllowRequest()){
+        ThreadContext.put(LogCommon.token, UUID.randomUUID().toString().replaceAll("-", ""));
+        QrTerminals qrTerminals = null;
+        if (CommonPool.rateLimiter.checkAllowRequest()) {
             LOG.debug("Begin call api get_qr_terminal");
-            ThreadContext.put(LogCommon.token,UUID.randomUUID().toString().replaceAll("-",""));
-            QrTerminals qrTerminals = new QrTerminals();
+            qrTerminals = new QrTerminals();
             qrTerminals.setList(qrTerminalService.getAll());
             RedisSyncer.saveData(RedisCommon.MERCHANT_CODE_TERMINAL_ID, qrTerminals.getList());
-            try {
-                Producer.submit(qrTerminals.getList());
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            ThreadContext.clearAll();
+            Producer.submit(qrTerminals.getList());
             LOG.debug("End call api get_qr_terminal");
-            return qrTerminals;
+            ThreadContext.clearAll();
         }
-        return null;
+        return qrTerminals;
     }
 
     @POST
     @Path("add_qr_terminal")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response addQrTerminal(QrTerminalPo qrTerminalPo){
-        if(CommonPool.rateLimiter.checkAllowRequest()) {
-            ThreadContext.put(LogCommon.token, UUID.randomUUID().toString().replaceAll("-", ""));
-            QrTerminalPo qrTerminalPoResponse = qrTerminalService.insertQrTerminal(qrTerminalPo);
-            ThreadContext.clearAll();
-            return Response.ok(qrTerminalPoResponse).build();
+    public Response addQrTerminal(QrTerminalPo qrTerminalPo) {
+        ThreadContext.put(LogCommon.token, UUID.randomUUID().toString().replaceAll("-", ""));
+        QrTerminalPo qrTerminalPoResponse = null;
+        if (CommonPool.rateLimiter.checkAllowRequest()) {
+            LOG.debug("Begin call api add_qr_terminal");
+            qrTerminalPoResponse = qrTerminalService.insertQrTerminal(qrTerminalPo);
+            LOG.debug("End call api add_qr_terminal");
         }
-        return null;
+        ThreadContext.clearAll();
+        return Response.ok(qrTerminalPoResponse).build();
     }
 }

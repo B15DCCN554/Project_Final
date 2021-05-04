@@ -8,9 +8,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import utils.QrTerminalDao;
 
-import java.sql.CallableStatement;
-import java.sql.Connection;
-import java.sql.ResultSet;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,7 +50,7 @@ public class QrTerminalService implements QrTerminalDao {
             }
             LOG.info("End get all data qr_terminal");
         } catch (Exception e) {
-            LOG.error("Error get data api get_qr_terminal: " + e.getMessage());
+            LOG.error("Error get data api get_qr_terminal: " , e);
         }
         return listQrTerminal;
     }
@@ -82,7 +80,7 @@ public class QrTerminalService implements QrTerminalDao {
             qrTerminalPo.setCreateDate(stmt.getTimestamp("P_CREATE_DATE"));
             LOG.info("End addQrTerminal");
         } catch (Exception e) {
-            LOG.error("Error insert qr_terminal: " + e.getMessage());
+            LOG.error("Error insert qr_terminal: " , e);
         }
         return qrTerminalPo;
     }
@@ -113,10 +111,36 @@ public class QrTerminalService implements QrTerminalDao {
             qrTerminalPo.setMasterMerchant(stmt.getString("P_MASTER_MERCHANT"));
             LOG.info("End addQrTerminalTest");
         } catch (Exception e) {
-            LOG.error("Error insert qr_terminal_test: " + e.getMessage());
-            //e.printStackTrace();
-
+            LOG.error("Error insert qr_terminal_test: ",e);
         }
         return qrTerminalPo;
+    }
+
+    public void addData(){
+        try {
+            Connection connection = CommonPool.hikariDataSource.getConnection();
+            connection.setAutoCommit(false);
+
+            Statement stmt = connection.createStatement();
+
+            String destination = "1234";
+            for (int i = 800001; i <= 1000000; i++) {
+                String sql = "Insert into MNP (MNP_ID,DESTINATION,PROVIDER_ID,STATUS,START_TIME,CREATE_DATE,MODIFY_DATE,CREATE_USER,ORIGIN_PROVIDER_ID,ACTION_TYPE,MNPCCH_ID) values (";
+                sql += (i + ",'" + (destination + i) + "'");
+                sql += ",'109000',1,1503002719000,to_timestamp('17-NOV-18 04.23.32.000000000 PM','DD-MON-RR HH.MI.SSXFF AM'),null,'SYS','109000','REVERSE','201708180339400100004247')";
+                System.out.println(sql);
+                stmt.addBatch(sql);
+                if(i%1000==0){
+                    stmt.executeBatch();
+                }
+            }
+
+            connection.commit();
+            connection.close();
+            System.out.println("done----------------------------");
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
     }
 }

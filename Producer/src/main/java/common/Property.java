@@ -20,10 +20,10 @@ public class Property {
                 if (null == instance) {
                     instance = new Properties();
                     try {
-                        instance.load(new FileInputStream("D:/Project_Tranning/dev.properties"));
-                        LOG.info("load file src/dev.properties success");
+                        instance.load(new FileInputStream("D:/project/Project_Tranning/dev.properties"));
+                        LOG.info("Load file src/dev.properties success");
                     } catch (IOException e) {
-                        LOG.error("Error load file src/dev.properties: " + e.getMessage());
+                        LOG.error("Error load file src/dev.properties: " , e);
                     }
                 }
             }

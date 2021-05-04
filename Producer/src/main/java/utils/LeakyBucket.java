@@ -1,10 +1,10 @@
-package service;
+package utils;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import utils.RateLimiter;
 
 import java.util.concurrent.TimeUnit;
+
 
 public class LeakyBucket extends RateLimiter {
     private static final Logger LOG = LogManager.getLogger(LeakyBucket.class);
@@ -19,6 +19,18 @@ public class LeakyBucket extends RateLimiter {
         nextAllowedTime = System.currentTimeMillis();
     }
 
+    @Override
+    public boolean checkAllowRequest() {
+        while (!allow()) {
+            try {
+                TimeUnit.MILLISECONDS.sleep(10);
+            } catch (InterruptedException e) {
+                LOG.error("Error check allow request: ",e);
+            }
+        }
+        return true;
+    }
+
     private boolean allow() {
         long curTime = System.currentTimeMillis();
         synchronized (this) {
@@ -28,21 +40,5 @@ public class LeakyBucket extends RateLimiter {
             }
             return false;
         }
-    }
-
-    @Override
-    public boolean checkAllowRequest() {
-        System.out.println("time next: "+nextAllowedTime);
-        System.out.println("cure next: "+System.currentTimeMillis());
-        while (!allow()) {
-            try {
-                //System.out.println("Đợi xíu!");
-                TimeUnit.MILLISECONDS.sleep(10);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-                LOG.error("Error check allow request: "+e.getMessage());
-            }
-        }
-        return true;
     }
 }

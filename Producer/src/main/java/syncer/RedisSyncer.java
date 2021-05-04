@@ -18,15 +18,15 @@ public class RedisSyncer {
         try (Jedis redis = CommonPool.sentinelPool.getResource()) {
             //redis.expire(key, TIME);
             redis.del(key);
+            LOG.info("Start write data into redis");
             for (QrTerminalPo qrTerminalPo : listQrTerminal) {
                 LOG.info("Data with key: " + key + " value: " + JsonCustom.convertObjectToJson(qrTerminalPo));
                 redis.lpush(key, JsonCustom.convertObjectToJson(qrTerminalPo));
                 LOG.info("Insert success");
             }
-            LOG.info("End insert data into redis");
+            LOG.info("End write data into redis");
         } catch (Exception e) {
-            LOG.error("Error insert data to redis: " + e.getMessage());
-            e.printStackTrace();
+            LOG.error("Error insert data to redis: ",e);
         }
     }
 }

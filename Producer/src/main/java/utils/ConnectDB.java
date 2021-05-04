@@ -39,7 +39,7 @@ public class ConnectDB {
             ds = new HikariDataSource(jdbcConfig);
             LOG.info("End create HikariDataSource");
         } catch (Exception e) {
-            LOG.error("Error create HikariDataSource: "+e.getMessage());
+            LOG.error("Error create HikariDataSource: ",e);
         }
     }
 

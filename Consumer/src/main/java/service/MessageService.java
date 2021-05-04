@@ -3,57 +3,54 @@ package service;
 import bean.QrTerminalPo;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.DeliverCallback;
+import common.ChannelCommon;
 import common.CommonPool;
 import common.GsonCustom;
+import common.LogCommon;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.ThreadContext;
 
 import java.io.IOException;
+import java.util.UUID;
 
 public class MessageService implements Runnable{
     private static final Logger LOG = LogManager.getLogger(MessageService.class);
-
     final static QrTerminalService qrTerminalService = new QrTerminalService();
-    private String queueName;
     private Channel channel;
 
-    public MessageService(String queueName, Channel channel) {
-        this.queueName = queueName;
-        this.channel = channel;
-    }
+    public MessageService() { }
 
     @Override
     public void run() {
         try {
-            getMessage(channel,queueName);
+            channel = CommonPool.basicChannelPool.getChannel();
+            channel.queueDeclare("ott_message_marketing", true, false, false, null);
+            getMessage(channel);
         } catch (Exception e) {
             LOG.error("Error get message from queue: "+e.getMessage());
-            e.printStackTrace();
         }
     }
 
-    //get message from queue
-    private void getMessage(Channel channel,String queueName) throws IOException, InterruptedException {
-        LOG.info("Begin read messages");
+    private void getMessage(Channel channel) throws IOException {
         DeliverCallback deliverCallback = (consumerTag, delivery) -> {
+            ThreadContext.put(LogCommon.token, UUID.randomUUID().toString().replaceAll("-", ""));
             String message = new String(delivery.getBody(), "UTF-8");
-            LOG.debug("queueName: "+queueName+" message: " + message);
+            LOG.debug("queueName: "+ChannelCommon.queueName+" message: " + message);
             try {
                 QrTerminalPo qrTerminalPo = GsonCustom.getInstance().fromJson(message, QrTerminalPo.class);
                 qrTerminalPo.setMasterMerchant(qrTerminalPo.getId().toString());
                 qrTerminalPo.setMerchantCode(qrTerminalPo.getId().toString());
-                //insert data into qr_terminal_test
                 qrTerminalService.insertQrTerminalTest(qrTerminalPo);
-                Thread.sleep(5);
                 System.out.println("insert data: "+qrTerminalPo.getId());
+                ThreadContext.clearAll();
             } catch (Exception e) {
-                LOG.error("Error read message: " + e.getMessage());
+                LOG.error("Error getMessage: ", e);
                 e.printStackTrace();
             }
+            ThreadContext.clearAll();
         };
-        channel.basicConsume(queueName, true, deliverCallback, consumerTag -> {
+        channel.basicConsume("ott_message_marketing", true, deliverCallback, consumerTag -> {
         });
-        CommonPool.channelPool.releaseChannel(channel);
-        LOG.info("End read messages");
     }
 }

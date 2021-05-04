@@ -24,10 +24,10 @@ public class ConnectRedis {
     private static final String MAX_DATABASE = "max_database";
 
     private static Properties properties = Property.getInstance();
-    private static GenericObjectPoolConfig config = null;
+    private static GenericObjectPoolConfig config = new GenericObjectPoolConfig();
     private static JedisSentinelPool sentinelPool = null;
+
     static {
-        config = new GenericObjectPoolConfig();
         try {
             LOG.info("Begin create sentinelPool");
             Set<String> sentinels = new HashSet<String>();
@@ -37,13 +37,12 @@ public class ConnectRedis {
             LOG.info("Host and Port: "+sentinelPool.getCurrentHostMaster().toString());
             LOG.info("End create sentinelPool");
         } catch (Exception e) {
-            LOG.error("Error create sentinelPool: "+e.getMessage());
+            LOG.error("Error create sentinelPool: ",e);
         }
     }
 
     public static JedisSentinelPool getJedisSentinelPool() { return sentinelPool; }
 
     private ConnectRedis(){}
-
 
 }

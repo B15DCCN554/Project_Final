@@ -2,11 +2,8 @@ package common;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 public class JsonCustom {
-    private static final Logger LOG = LogManager.getLogger(JsonCustom.class);
 
     private static ObjectMapper objectMapper;
 

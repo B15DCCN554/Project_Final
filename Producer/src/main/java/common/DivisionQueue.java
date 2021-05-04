@@ -1,7 +1,5 @@
 package common;
 
-import bean.QrTerminalPo;
-
 public class DivisionQueue {
     //use 4 queue
     private static final int NUMBER_SHARK = 4;

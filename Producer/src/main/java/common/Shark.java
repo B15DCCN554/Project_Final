@@ -1,13 +1,13 @@
 package common;
 
 public enum Shark {
-    SHARK_ZERO(0, "QUEUE_ZERO"),
-    SHARK_ONE(1, "QUEUE_ONE"),
-    SHARK_TWO(2, "QUEUE_TWO"),
-    SHARK_THREE(3, "QUEUE_THREE");
+        SHARK_ZERO(0, "QUEUE_ZERO"),
+        SHARK_ONE(1, "QUEUE_ONE"),
+        SHARK_TWO(2, "QUEUE_TWO"),
+        SHARK_THREE(3, "QUEUE_THREE");
 
-    private final String queueName;
-    private int sharkValue;
+        private final String queueName;
+        private int sharkValue;
 
     Shark(int sharkValue, String queueName) {
         this.sharkValue = sharkValue;

@@ -9,7 +9,8 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.servlet.ServletContainer;
-import service.LeakyBucket;
+import service.QrTerminalService;
+import utils.LeakyBucket;
 import utils.BasicChannelPool;
 import utils.ConnectDB;
 import utils.ConnectRedis;
@@ -26,6 +27,7 @@ public class App {
 
     public static void main(String[] args) {
         ThreadContext.put(LogCommon.token, UUID.randomUUID().toString().replaceAll("-", ""));
+        ShutDown.shutdownHook();
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/");
         Server jettyServer = new Server(Integer.parseInt(properties.getProperty(SERVER_PORT)));
@@ -39,23 +41,20 @@ public class App {
 
         // create pool
         CommonPool.hikariDataSource = ConnectDB.getDataSource();
-        CommonPool.channelPool = BasicChannelPool.createChannelPool();
+        CommonPool.basicChannelPool = BasicChannelPool.getInstance();
         CommonPool.sentinelPool = ConnectRedis.getJedisSentinelPool();
         CommonPool.rateLimiter = new LeakyBucket(RateConfig.MAX_REQUEST_PER_SECOND);
         // start server
         try {
             jettyServer.start();
+            LOG.info("Server started with port: "+properties.getProperty(SERVER_PORT));
+            ThreadContext.clearAll();
+            //new QrTerminalService().addData();
             jettyServer.join();
-            LOG.info("Server start with port: "+properties.getProperty(SERVER_PORT));
         } catch (Exception e) {
-            LOG.error("error start server: "+e.getMessage());
+            LOG.error("Error start server: ",e);
         } finally {
             jettyServer.destroy();
-            ThreadContext.clearAll();
-            LOG.info("Server start success");
         }
-
-        // shut down hook
-        ShutDown.shutdownHook();
     }
 }

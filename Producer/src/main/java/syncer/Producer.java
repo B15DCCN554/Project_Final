@@ -7,43 +7,41 @@ import common.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.IOException;
+
 import java.util.List;
 
 public class Producer {
     private static final Logger LOG = LogManager.getLogger(Producer.class);
 
     //submit into queue
-    public static void submit(List<QrTerminalPo> listQrTerminalPo) throws InterruptedException {
-        if(listQrTerminalPo == null) return;
-        int shark = 0;
-        for (QrTerminalPo qrTerminalPo : listQrTerminalPo) {
-            LOG.debug("Begin init channel");
-            Channel channel = CommonPool.channelPool.getChannel();
-            String queueName = DivisionQueue.getQueueName(shark);
-            System.out.println(queueName);
-            try {
-                if (channel == null) return;
+    public static boolean submit(List<QrTerminalPo> listQrTerminalPo) {
+        if (listQrTerminalPo == null) {
+            LOG.info("listQrTerminalPo is null");
+            return false;
+        }
+        Channel channel = null;
+        try {
+            channel = CommonPool.basicChannelPool.getChannel();
+            if (channel == null || !channel.isOpen()) {
+                LOG.info("Not channel is available");
+                return false;
+            }
+            channel.queueDeclare(ChannelCommon.queueName, true, false, false, null);
+            for (QrTerminalPo qrTerminalPo : listQrTerminalPo) {
                 String messageStr = JsonCustom.convertObjectToJson(qrTerminalPo);
                 byte[] message = messageStr.getBytes("UTF-8");
                 LOG.info("Begin submit data: " + messageStr);
-                channel.queueDeclare(queueName, true, false, false, null);
-                channel.basicPublish("", queueName, null, message);
+                channel.basicPublish("", ChannelCommon.queueName, null, message);
                 LOG.info("End submit data");
-                ++shark;
-                System.out.println("size:"+CommonPool.channelPool.getSize());
-            } catch (IOException ioException) {
-                ioException.printStackTrace();
-                LOG.error("Error submit data: " + ioException.getMessage());
-            } finally {
-                try {
-                    CommonPool.channelPool.releaseChannel(channel);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                LOG.debug("End channel");
             }
+        } catch (Exception e) {
+            LOG.error("Error submit: ", e);
+            return false;
+        } finally {
+            CommonPool.basicChannelPool.releaseChannel(channel);
+            LOG.debug("End channel");
         }
+        return true;
     }
 }
 

@@ -3,6 +3,7 @@ package bean;
 import java.util.List;
 
 public class QrTerminals {
+
     private List<QrTerminalPo> list;
 
     public List<QrTerminalPo> getList() {
